@@ -1,0 +1,49 @@
+---
+  - name: Ansible Network Device Inventory
+    hosts: localhost
+    connection: local
+    gather_facts: false
+    vars_files:
+      - credentials.yml
+      - params.yml
+    vars:
+      dnac_host: "{{dnac_host}}"
+      dnac_username: "{{username}}"
+      dnac_password: "{{password}}"
+      family: "{{family}}"
+      dnac_login: &dnac_login
+        dnac_host: "{{dnac_host}}"
+        dnac_username: "{{dnac_username}}"
+        dnac_password: "{{dnac_password}}"
+        dnac_version: 2.2.2.3
+        dnac_verify: False
+        dnac_debug: False
+
+    tasks:
+    - name: Get start timestamp from the system
+      shell: "date +%Y-%m-%dT%H-%M-%S"
+      register: timestamp
+      delegate_to: localhost
+
+    - name: Print playbook start timestamp
+      ansible.builtin.debug:
+        msg: "Playbook start time: {{timestamp.stdout}}"
+
+    - name: Gather device info
+      cisco.dnac.network_device_info:
+        <<: *dnac_login
+        family: "{{family}}"
+      register: device_info
+
+    - name: Display device info
+      ansible.builtin.debug:
+        msg: "{{device_info.dnac_response.response}}"
+
+    - name: Get end timestamp from the system
+      shell: "date +%Y-%m-%dT%H-%M-%S"
+      register: timestamp
+      delegate_to: localhost
+
+    - name: Print timestamp
+      ansible.builtin.debug:
+        msg: "Playbook end time: {{timestamp.stdout}}"
