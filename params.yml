@@ -1,6 +1,7 @@
 ---
 deviceFamily: 
-  - Unified AP
-  - Switches and Hubs
-locationName:
-  - Global/Canada/Ontario/Toronto/TBRANCH
+  # - Unified AP
+  # - Switches and Hubs
+  - Routers
+SiteNameHierarchy: "Global/Canada/Ontario/Toronto/TRN6"
+localOutputFile: "devices_out.json"

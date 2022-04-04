@@ -10,8 +10,11 @@
       dnac_host: "{{dnac_host}}"
       dnac_username: "{{username}}"
       dnac_password: "{{password}}"
+      ## VAR extractions
+      SiteNameHierarchy: "{{SiteNameHierarchy}}"
       deviceFamily: "{{deviceFamily}}"
-      siteId: "d88cc44e-9b5e-4bd7-9df1-c96afa7a38a9"
+      localOutputFile: "{{localOutputFile}}"
+      ##
       dnac_login: &dnac_login
         dnac_host: "{{dnac_host}}"
         dnac_username: "{{dnac_username}}"
@@ -30,6 +33,24 @@
       ansible.builtin.debug:
         msg: "Playbook start time: {{timestamp.stdout}}"
 
+    - name: Device list output file
+      ansible.builtin.debug:
+        msg: "Device list output file: {{localOutputFile}}"
+
+    - name: Read Site SiteNameHierarchy
+      ansible.builtin.debug:
+        msg: "Playbook end time: {{SiteNameHierarchy}}"
+
+    - name: Get Site Id
+      cisco.dnac.site_info:
+        <<: *dnac_login
+        name: "{{SiteNameHierarchy}}"
+      register: Site_Detail
+
+    - name: Site Id
+      set_fact:
+          siteId: "{{Site_Detail.dnac_response.response[0].id}}"
+
     - name: Gather membership info
       cisco.dnac.site_membership_info:
         <<: *dnac_login
@@ -46,16 +67,16 @@
     - name: Display membership info
       set_fact:
         device_list: "{{ device_list + item.1.response }}"
+      when: item.1.response|length > 0
       with_subelements: 
          - "{{membership_info.results}}"
          - dnac_response.device
       loop_control:
-        label: ""
+        label: "{{item.1.response}}"
       no_log: true
 
-    - name: Display Device info
-      ansible.builtin.debug:
-        msg: "{{device_list}}"
+    - name: Write out to local file
+      local_action: copy content="{{device_list}}" dest="{{localOutputFile}}"
 
     - name: Get end timestamp from the system
       shell: "date +%Y-%m-%dT%H-%M-%S"
