@@ -10,7 +10,8 @@
       dnac_host: "{{dnac_host}}"
       dnac_username: "{{username}}"
       dnac_password: "{{password}}"
-      family: "{{family}}"
+      deviceFamily: "{{deviceFamily}}"
+      siteId: "d88cc44e-9b5e-4bd7-9df1-c96afa7a38a9"
       dnac_login: &dnac_login
         dnac_host: "{{dnac_host}}"
         dnac_username: "{{dnac_username}}"
@@ -29,15 +30,35 @@
       ansible.builtin.debug:
         msg: "Playbook start time: {{timestamp.stdout}}"
 
-    - name: Gather device info
-      cisco.dnac.network_device_info:
+    - name: Gather membership info
+      cisco.dnac.site_membership_info:
         <<: *dnac_login
-        family: "{{family}}"
-      register: device_info
+        siteId: "{{siteId}}"
+        deviceFamily: "{{item}}"
+      register: membership_info
+      with_items: "{{deviceFamily}}"
+      no_log: true
 
-    - name: Display device info
+    - name: Iterate over devices
       ansible.builtin.debug:
-        msg: "{{device_info.dnac_response.response}}"
+        msg: "{{item}}"
+      with_items: "{{membership_info.results}}"
+      ## prevent verbose output of each item contents
+      loop_control:
+        label: ""
+
+    - name: Display membership info
+      ansible.builtin.debug:
+        msg: "{{item}}"
+      with_subelements: 
+         - "{{membership_info.results}}"
+         - dnac_response.device
+
+
+    # - name: Display membership info
+    #   ansible.builtin.debug:
+    #     #msg: "{{membership_info.dnac_response.device}}"
+    #     msg: "{{membership_info}}"
 
     - name: Get end timestamp from the system
       shell: "date +%Y-%m-%dT%H-%M-%S"
