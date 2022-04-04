@@ -39,26 +39,23 @@
       with_items: "{{deviceFamily}}"
       no_log: true
 
-    - name: Iterate over devices
-      ansible.builtin.debug:
-        msg: "{{item}}"
-      with_items: "{{membership_info.results}}"
-      ## prevent verbose output of each item contents
-      loop_control:
-        label: ""
+    - name: Initialize Device List
+      set_fact:
+        device_list: []
 
     - name: Display membership info
-      ansible.builtin.debug:
-        msg: "{{item}}"
+      set_fact:
+        device_list: "{{ device_list + item.1.response }}"
       with_subelements: 
          - "{{membership_info.results}}"
          - dnac_response.device
+      loop_control:
+        label: ""
+      no_log: true
 
-
-    # - name: Display membership info
-    #   ansible.builtin.debug:
-    #     #msg: "{{membership_info.dnac_response.device}}"
-    #     msg: "{{membership_info}}"
+    - name: Display Device info
+      ansible.builtin.debug:
+        msg: "{{device_list}}"
 
     - name: Get end timestamp from the system
       shell: "date +%Y-%m-%dT%H-%M-%S"

@@ -1,4 +1,6 @@
 ---
-family: 
+deviceFamily: 
   - Unified AP
   - Switches and Hubs
+locationName:
+  - Global/Canada/Ontario/Toronto/TBRANCH
